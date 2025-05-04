@@ -9,6 +9,8 @@
 // 减少编译时间的方式,而不使用include
 class USpringArmComponent;
 class UCameraComponent;
+class USInteractionComponent;
+class UAnimMontage;
 
 
 UCLASS()
@@ -34,9 +36,16 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* cameraComp;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
+	USInteractionComponent* interactionComp;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> projectileClass;
 
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* attackAnim;
+
+	FTimerHandle TimerHandle_PrimaryAttack;	// 当角色死了，记得销毁定时器
 
 public:	
 	// Called every frame
@@ -47,5 +56,7 @@ public:
 
 
 	void PrimaryAttack();
+	void PrimaryAttack_TimeElapsed();
+	void PrimaryInteract();
 
 };

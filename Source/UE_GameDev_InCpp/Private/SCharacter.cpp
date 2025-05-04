@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SInteractionComponent.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -21,8 +22,10 @@ ASCharacter::ASCharacter()
 	cameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	cameraComp->SetupAttachment(springArmComp);
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	interactionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
 }
 
@@ -90,17 +93,31 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 }
 
 void ASCharacter::PrimaryAttack()
 {
+	PlayAnimMontage(attackAnim);
 
-	 FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);	// 后面改成动画事件优化
+	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); 角色死亡时，清理定时器
+	
+}
+
+void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 	FTransform spawnTM = FTransform(GetControlRotation(), HandLocation);
 
 	FActorSpawnParameters spawnPara;
 	spawnPara.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	GetWorld()->SpawnActor<AActor>(projectileClass, spawnTM, spawnPara);
+}
+
+void ASCharacter::PrimaryInteract()
+{
+	interactionComp->PrimaryInteract();
 }
 
