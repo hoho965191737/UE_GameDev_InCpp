@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
-// ¼õÉÙ±àÒëÊ±¼äµÄ·½Ê½,¶ø²»ÊÊÓÃinclude
+// å‡å°‘ç¼–è¯‘æ—¶é—´çš„æ–¹å¼,è€Œä¸ä½¿ç”¨include
 class USpringArmComponent;
 class UCameraComponent;
 
@@ -25,6 +25,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	void MoveForward(float value);
+	void MoveRight(float value);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -33,11 +34,18 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* cameraComp;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> projectileClass;
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+
+	void PrimaryAttack();
 
 };

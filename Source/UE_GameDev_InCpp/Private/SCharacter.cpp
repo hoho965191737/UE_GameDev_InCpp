@@ -4,6 +4,8 @@
 #include "SCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -12,11 +14,16 @@ ASCharacter::ASCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	springArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
+	springArmComp->bUsePawnControlRotation = true;
 	springArmComp->SetupAttachment(RootComponent);
 
-	// springArmCompÓÐÄÚÖÃµÄÅö×²¼ì²â
+	// springArmCompæœ‰å†…ç½®çš„ç¢°æ’žæ£€æµ‹
 	cameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	cameraComp->SetupAttachment(springArmComp);
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	bUseControllerRotationYaw = false;
 }
 
 // Called when the game starts or when spawned
@@ -28,7 +35,22 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float value)
 {
-	AddMovementInput(GetActorForwardVector(), value);	// Ö¸ÏòÒÆ¶¯·½Ïò
+	FRotator controlRot = GetControlRotation();
+	controlRot.Pitch = 0.0f;
+	controlRot.Roll = 0.0f;
+	AddMovementInput(controlRot.Vector(), value);	// æŒ‡å‘ç§»åŠ¨æ–¹å‘
+}
+
+void ASCharacter::MoveRight(float value)
+{
+
+	FRotator controlRot = GetControlRotation();
+	controlRot.Pitch = 0.0f;
+	controlRot.Roll = 0.0f;
+
+	FVector rightVector = FRotationMatrix(controlRot).GetScaledAxis(EAxis::Y);
+
+	AddMovementInput(rightVector, value);	
 }
 
 // Called every frame
@@ -36,16 +58,49 @@ void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// -- Rotation Visualization -- //
+	const float DrawScale = 100.0f;
+	const float Thickness = 5.0f;
+
+	FVector LineStart = GetActorLocation();
+	// Offset to the right of pawn
+	LineStart += GetActorRightVector() * 100.0f;
+	// Set line end in direction of the actor's forward
+	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
+	// Draw Actor's Direction
+	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+
+	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
+	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
+	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+
 }
 
 // Called to bind functionality to input
-// Ìí¼ÓÊäÈë£¬±ØÐë½«keyÓ³Éäµ½º¯ÊýÀï
+// æ·»åŠ è¾“å…¥ï¼Œå¿…é¡»å°†keyæ˜ å°„åˆ°å‡½æ•°é‡Œ
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// °ó¶¨Öá
+	// ç»‘å®šè½´
 	PlayerInputComponent->BindAxis("MoveForward", this, &ASCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
+}
+
+void ASCharacter::PrimaryAttack()
+{
+
+	 FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	FTransform spawnTM = FTransform(GetControlRotation(), HandLocation);
+
+	FActorSpawnParameters spawnPara;
+	spawnPara.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	GetWorld()->SpawnActor<AActor>(projectileClass, spawnTM, spawnPara);
 }
 
