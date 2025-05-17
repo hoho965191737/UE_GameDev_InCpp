@@ -44,6 +44,11 @@ protected:
 
 	void Dash_TimeElapsed();
 
+	UFUNCTION()
+		void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;
+
 	// Re-use spawn logic between attacks
 	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 

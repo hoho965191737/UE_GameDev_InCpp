@@ -23,6 +23,9 @@ public:
 public:
 	UPROPERTY(BlueprintAssignable)
 		FOnHealthChanged OnHealthChanged;
+	
+	UFUNCTION(BlueprintCallable)
+		bool IsAlive() const;
 
 protected:
 	// EditAnywhere - edit in BP editor and per-instance in level.
