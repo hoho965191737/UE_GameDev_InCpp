@@ -22,10 +22,10 @@ public:
 	// Sets default values for this character's properties
 	ASCharacter();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+protected:
 	void MoveForward(float Value);
 
 	void MoveRight(float Value);
@@ -35,6 +35,17 @@ protected:
 	void PrimaryAttack_TimeElapsed();
 
 	void PrimaryInteract();
+
+	void BlackHoleAttack();
+
+	void BlackholeAttack_TimeElapsed();
+
+	void Dash();
+
+	void Dash_TimeElapsed();
+
+	// Re-use spawn logic between attacks
+	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -50,18 +61,23 @@ protected:
 	TSubclassOf<AActor> ProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
+		TSubclassOf<AActor> BlackHoleProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+		TSubclassOf<AActor> DashProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+		UAnimMontage* AttackAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+		float AttackAnimDelay;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent* AttributeComp;
 
 	FTimerHandle TimerHandle_PrimaryAttack;		// 当角色死了，记得销毁定时器
+	FTimerHandle TimerHandle_BlackholeAttack;
+	FTimerHandle TimerHandle_Dash;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };
